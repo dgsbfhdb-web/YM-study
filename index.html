@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YM | Study Mission Control</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1018;color:#eef3fa;font-family:Arial,sans-serif;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+h1{color:#62e6a5;letter-spacing:3px}
+small,.muted{color:#91a0b5}
+.card{background:#151e2b;border:1px solid #28364a;border-radius:14px;padding:18px;margin:14px 0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#151e2b;padding:15px;border-radius:12px;text-align:center}
+.stat b{display:block;font-size:25px;color:#62e6a5;margin-top:8px}
+progress{width:100%;height:12px;accent-color:#62e6a5}
+h2{font-size:18px}
+h3{font-size:15px;color:#62e6a5}
+.task{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid #293445}
+.task input{width:19px;height:19px;accent-color:#62e6a5}
+.task label{flex:1;line-height:1.4}
+.task input:checked+label{text-decoration:line-through;color:#718096}
+button,select,input[type=text]{background:#203047;color:white;border:1px solid #3b506b;padding:11px;border-radius:8px}
+button{cursor:pointer}
+button:hover{background:#2d4564}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+.active{background:#167b57}
+#missions{display:none}
+@media(max-width:500px){.stats{grid-template-columns:1fr 1fr}body{padding:13px}}
+</style>
+</head>
+<body>
+<header>
+<div><h1>YM.</h1><small>YOUR STUDY MISSION CONTROL</small></div>
+<div class="muted">STUDENT DASHBOARD</div>
+</header>
+
+<section class="stats">
+<div class="stat">Completed<b id="done">0</b></div>
+<div class="stat">Remaining<b id="left">63</b></div>
+<div class="stat">Level<b id="level">1</b></div>
+</section>
+
+<div class="card">
+<h2>MISSION PROGRESS</h2>
+<progress id="bar" value="0" max="63"></progress>
+<p id="percent" class="muted">0% completed</p>
+<p>⭐ XP: <b id="xp">0</b></p>
+</div>
+
+<div class="tabs">
+<button class="active" onclick="show('lectures',this)">Lectures</button>
+<button onclick="show('labs',this)">Labs</button>
+<button onclick="show('missions',this)">Daily Missions</button>
+</div>
+
+<div id="lectures" class="card">
+<h2>LECTURE MISSIONS</h2>
+<div id="lectureList"></div>
+</div>
+
+<div id="labs" class="card" style="display:none">
+<h2>LAB MISSIONS</h2>
+<div id="labList"></div>
+</div>
+
+<div id="missions" class="card">
+<h2>⚡ DAILY MISSIONS</h2>
+<p>Complete 3 study tasks today to finish your daily mission.</p>
+<p id="daily">0 / 3 completed</p>
+</div>
+
+<div class="card">
+<h2>YOUR PERSONAL SUBJECT</h2>
+<input id="subject" type="text" placeholder="Subject name">
+<button onclick="addSubject()">Add subject</button>
+<div id="subjects"></div>
+</div>
+
+<script>
+const lectures = {
+"Anatomy":[
+"Week 1 - Anatomy of mandible, face, scalp and muscle of mastication",
+"Week 2 - 1st week of embryological development",
+"Week 3 - 2nd week of embryological development",
+"Week 4 - 3rd week of embryological development",
+"Week 5 - 4th to 8th week",
+"Week 6 - Placenta and fetal membrane"],
+"Histology":["Week 1 - Muscular tissue","Week 2 - Nervous tissue"],
+"Physiology":[
+"Week 1 - Origination of nervous system","Week 2 - Resting membrane potential",
+"Week 3 - Graded and action potential","Week 4 - Synaptic transmission",
+"Week 5 - Autonomic nervous system 1","Week 6 - Autonomic nervous system 2"],
+"Biochemistry":[
+"Week 1 - Nucleic acid structure, DNA organization","Week 2 - DNA replication",
+"Week 3 - DNA transcription","Week 4 - Protein synthesis",
+"Week 5 - Regulation of gene expression","Week 6 - Basics of molecular biotechnology techniques"],
+"Pathology":["Week 1 - Introduction to pathology","Week 2 - Cell adaptation and growth disturbance","Week 3 - Cell injury"],
+"Parasitology":[
+"Week 1 - Introduction to medical parasitology and biology of parasite",
+"Week 2 - Classification of medical important helminths (Trematode)",
+"Week 3 - Classification of medical important helminths 2 (Cestode)",
+"Week 3 - Classification of medical important helminths 3 (Nematode)",
+"Week 4 - Classification of medical important protozoa",
+"Week 6 - Biosafety of medical parasitology"],
+"Microbiology":[
+"Week 1 - Structure and function of bacterial cell",
+"Week 2 - Virulence factor of bacteria","Week 2 - Viral morphology, structure and replication",
+"Week 4 - Fungal morphology, structure and replication"],
+"Pharmacology":[
+"Week 1 - Introduction to pharmacology","Week 1 - Pharmacodynamic 1",
+"Week 2 - Pharmacodynamic 2","Week 3 - Pharmacokinetics 1",
+"Week 4 - Pharmacokinetics 2","Week 6 - Drug in extremes age"]
+};
+
+const labs = {
+"Anatomy":[
+"Week 1 - Anatomy of mandible, face, scalp and muscle of mastication",
+"Week 2 - 1st week of embryological development","Week 3 - 2nd week of embryological development",
+"Week 4 - 3rd week of embryological development","Week 5 - 4th to 8th week",
+"Week 6 - Placenta and fetal membrane"],
+"Histology":["Week 1 - Muscular tissue","Week 2 - Nervous tissue"],
+"Biochemistry":["Week 1 - DNA extraction","Week 3 - Solution and concentration",
+"Week 4 - DNA detection and agarose gel electrophoresis",
+"Week 5 - Extraction and assessment and detection of protein"],
+"Physiology":["Action potential","Autonomic nervous system"],
+"Pathology":["Cell adaptation and growth disturbance","Cell injury"],
+"Parasitology":["Classification of helminths, importance",
+"Demonstration of medically important cestodes and nematodes",
+"Classification of medical important protozoa"],
+"Microbiology":["Structure and function of bacterial cell","Fungal morphology and structure"],
+"Pharmacology":["Pharmacodynamic","Pharmacokinetics","Dosage form & Prescription writing"]
+};
+
+let completed=JSON.parse(localStorage.getItem("ym_done")||"[]");
+let custom=JSON.parse(localStorage.getItem("ym_subjects")||"[]");
+function key(type,subject,item){return type+"|"+subject+"|"+item}
+function render(data,type,target){
+ let html="";
+ Object.entries(data).forEach(([subject,items])=>{
+ html+=`<h3>${subject}</h3>`;
+ items.forEach(item=>{
+ let id=key(type,subject,item);
+ html+=`<div class="task"><input type="checkbox" ${completed.includes(id)?"checked":""} onchange="toggle('${encodeURIComponent(id)}',this.checked)"><label>${item}</label></div>`;
+ });
+ });
+ document.getElementById(target).innerHTML=html;
+}
+function toggle(id,checked){
+ id=decodeURIComponent(id);
+ if(checked&&!completed.includes(id))completed.push(id);
+ if(!checked)completed=completed.filter(x=>x!==id);
+ localStorage.setItem("ym_done",JSON.stringify(completed));
+ update();
+}
+function update(){
+ let total=63,done=completed.length;
+ document.getElementById("done").textContent=done;
+ document.getElementById("left").textContent=Math.max(0,total-done);
+ document.getElementById("level").textContent=Math.floor(done/5)+1;
+ document.getElementById("xp").textContent=done*20;
+ document.getElementById("bar").value=done;
+ document.getElementById("percent").textContent=Math.round(done/total*100)+"% completed";
+ document.getElementById("daily").textContent=Math.min(done,3)+" / 3 completed";
+}
+function show(id,btn){
+ ["lectures","labs","missions"].forEach(x=>document.getElementById(x).style.display=x===id?"block":"none");
+ document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));
+ btn.classList.add("active");
+}
+function addSubject(){
+ let s=document.getElementById("subject").value.trim();
+ if(!s)return;
+ custom.push(s);
+ localStorage.setItem("ym_subjects",JSON.stringify(custom));
+ document.getElementById("subject").value="";
+ renderSubjects();
+}
+function renderSubjects(){
+ document.getElementById("subjects").innerHTML=custom.map(s=>"<p>📘 "+s+"</p>").join("");
+}
+render(lectures,"lecture","lectureList");
+render(labs,"lab","labList");
+renderSubjects();
+update();
+</script>
+</body>
+</html>
